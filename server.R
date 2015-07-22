@@ -24,7 +24,7 @@ names(country_data) <- c("year", "country", "Biofuel Production - Daily Average 
 eurusd <- as.numeric(tail(Quandl("CURRFX/EURUSD/1", type = "zoo", start_date = Sys.Date()-10), 1))
 eurgbp <- as.numeric(tail(Quandl("CURRFX/EURGBP/1", type = "zoo", start_date = Sys.Date()-10), 1))
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
     
     output$fx <- renderText({
         paste("Current:", round(eurusd, 4), "EUR/USD and", round(eurgbp, 4), "EUR/GBP")
@@ -47,6 +47,7 @@ shinyServer(function(input, output) {
         webpage <- trim(gsub("PEGAS Futures", "", webpage))
         webpage <- matrix(webpage[webpage != ""], ncol = 2, byrow = TRUE)
         webpage <- webpage[-grep(" WE | H | L ", webpage), ]
+        webpage <- gsub(",", ".", webpage)
         
         # create the table
         pricetab <- data.frame(code = webpage[, 1], price = as.numeric(webpage[, 2]), market = as.character(sapply(strsplit(webpage[, 1], " "), head, 1)))
@@ -141,11 +142,19 @@ shinyServer(function(input, output) {
     })
     
     output$ptable <- renderGvis({
+        progress <- shiny::Progress$new(session, min = 0, max = 1)
+        on.exit(progress$close())
+        
+        progress$inc(amount = 0.1, message = "Calculation in progress", detail = "This may take a moment.")
+                                
         prices()
     })
     
     output$motionPlot <- renderGvis({
-          
+        progress <- shiny::Progress$new(session, min = 0, max = 1)
+        on.exit(progress$close())
+        progress$inc(amount = 0.1, message = "Calculation in progress", detail = "This may take a moment.")
+        
         gvisMotionChart(country_data, "country", "year", options = list(width = 960, height = 640))
         
     })

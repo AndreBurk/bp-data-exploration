@@ -48,7 +48,7 @@ shinyUI(navbarPage("Dashboard",
                      h6("The data was downloaded via Quandl."),
                      h6(a("Link to BP database on Quandl", href = "https://www.quandl.com/data/BP?keyword=")),
                      h6("The processed and here used dataset can be found on github called 'bp-country-data.csv' (area summations like 'total world' were removed)."),
-                     h6(a("Github repository", href = "https://github.com/AndreBurk/bp-data-exploration")),
+                     h6(a("GitHub repository", href = "https://github.com/AndreBurk/bp-data-exploration")),
                      width = 2
                  ),
                  mainPanel(
