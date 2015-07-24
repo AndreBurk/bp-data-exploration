@@ -50,7 +50,7 @@ shinyServer(function(input, output, session) {
         webpage <- gsub(",", ".", webpage)
         
         # create the table
-        pricetab <- data.frame(code = webpage[, 1], price = as.numeric(webpage[, 2]), market = as.character(sapply(strsplit(webpage[, 1], " "), head, 1)))
+        pricetab <- suppressWarnings(data.frame(code = webpage[, 1], price = as.numeric(webpage[, 2]), market = as.character(sapply(strsplit(webpage[, 1], " "), head, 1))))
         pricetab$code <- as.character(pricetab$code)
         pricetab$market <- as.character(pricetab$market)
         pricetab$Delivery <- sapply(strsplit(pricetab$code, paste0(pricetab$market, " "), fixed = TRUE), tail, 1)
@@ -67,29 +67,20 @@ shinyServer(function(input, output, session) {
         ## DA
         webpage <- getURL("http://www.cegh.at/day-ahead-contracts")
         webpage <- readLines(tc <- textConnection(webpage)); close(tc)
-                
-        webpage <- webpage[431]
-        webpage <- sapply(strsplit(trim(webpage), " "), head, 1)
-        webpage <- ifelse(suppressWarnings(is.na(as.numeric(webpage))), 0, as.numeric(webpage))
-        pricetab[1, "CEGH"] <- round(webpage, 2)
+        
+        webpage <- sapply(strsplit(trim(webpage[c(431, 448, 482)]), " "), head, 1)
+        webpage <- suppressWarnings(ifelse(suppressWarnings(is.na(as.numeric(webpage))), 0, as.numeric(webpage)))
+                                
+        pricetab[1, "CEGH"] <- round(webpage[webpage > 0], 2)
         
         ## Futures
         webpage <- getURL("http://www.cegh.at/gas-futures-market")
         webpage <- readLines(tc <- textConnection(webpage)); close(tc)
         # get different rows from CEGH page
-        sub <- sapply(strsplit(trim(webpage[c(411, 615, 635, 838, 854, 870, 1029)]), " "), head, 1)
-        sub <- ifelse(suppressWarnings(is.na(as.numeric(sub))), 0, as.numeric(sub))
-        # second possible rows
-        sub1 <- sapply(strsplit(trim(webpage[c(448, 695, 715, 953, 969, 985, 1166)]), " "), head, 1)
-        sub1 <- ifelse(suppressWarnings(is.na(as.numeric(sub1))), 0, as.numeric(sub1))
+        webpage <- sapply(strsplit(trim(webpage[c(401, 605, 625, 828, 844, 860, 1019, 411, 615, 635, 838, 854, 870, 1029, 434, 681, 701, 939, 955, 971, 1152, 444, 691, 711, 949, 965, 981, 1162, 448, 695, 715, 953, 969, 985, 1166)]), " "), head, 1)
+        webpage <- suppressWarnings(ifelse(suppressWarnings(is.na(as.numeric(webpage))), 0, as.numeric(webpage)))
         
-        if(all(sub == 0) == TRUE){
-            webpage <- sub1
-        } else {
-            webpage <- sub
-        }
-                
-        pricetab[3:9, "CEGH"] <- round(webpage, 2)
+        pricetab[3:9, "CEGH"] <- round(webpage[webpage > 0], 2); rm(webpage); rm(tc)
         
         # price transformations
         pricetab[, c("NBP", "ZEE")] <- round(((pricetab[, c("NBP", "ZEE")]/eurgbp)/29.3071)/100*1000, 2)
@@ -145,7 +136,7 @@ shinyServer(function(input, output, session) {
         progress <- shiny::Progress$new(session, min = 0, max = 1)
         on.exit(progress$close())
         
-        progress$inc(amount = 0.1, message = "Calculation in progress", detail = "This may take a moment.")
+        progress$inc(amount = 0.1, message = "Calculation in progress.", detail = "This may take a moment.")
                                 
         prices()
     })
