@@ -62,7 +62,11 @@ country_data$category <- as.character(strsplit(country_data$description, paste0(
 ## renaming countries for mapping and standardization
 country_data$country <- gsub("Republic of Ireland", "Ireland", country_data$country)
 country_data$country <- gsub("Russian Federation", "Russia", country_data$country)
+country_data$country <- gsub("Russia (Kamchatka)", "Russia", country_data$country, fixed = TRUE)
 country_data$country <- gsub("USA", "United States", country_data$country)
+country_data$country <- gsub("Portugal (The Azores)", "Portugal", country_data$country, fixed = TRUE)
+country_data$country <- gsub("France (Guadeloupe)", "France", country_data$country, fixed = TRUE)
+country_data$country <- gsub("Rep. of Congo (Brazzaville)", "Republic of the Congo", country_data$country, fixed = TRUE)
 
 ## rearrange data - column for each variable
 country_data <- dcast(country_data, year + country ~ category, value.var = "values")
